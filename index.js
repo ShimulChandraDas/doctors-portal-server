@@ -34,24 +34,33 @@ async function run() {
             res.send(services)
 
         })
+
+        //not proper way
+        //after learning more about mongodb.use aggregate lookup, pipeline, match, group
         app.get('/available', async (req, res) => {
-            const date = req.query.date || "May 14th, 2022"
+            const date = req.query.date || "May 14th, 2022";
 
             //set:01 get all service
             const services = await serviceCollection.find().toArray();
 
-            //step: 01 get the booking of the day
+            // //step: 01 get the booking of the day
             const query = { date: date };
-            const bookings = await bookingCollection.find(query).toArray()
+            const bookings = await bookingCollection.find(query).toArray();
 
-            //step: 3 for each service, find booking for that service
+            // //step: 3 for each service, find booking for that service
             services.forEach(service => {
-                const serviceBookings = bookings.filter(b => b.treatment === service.name);
+                const serviceBookings = bookings.filter(book => book.treatment === service.name);
+                const bookedSlots = serviceBookings.map(book => book.slot);
+                //service.booked = booked
+                //service.booked = serviceBookings.map(s => s.slot)
+                const available = service.slots.filter(slot => !bookedSlots.includes(slot));
+                service.slots = available;
+
 
             })
 
 
-            res.send(bookings);
+            res.send(services);
 
         })
 
